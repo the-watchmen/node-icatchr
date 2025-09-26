@@ -1,0 +1,34 @@
+{
+  "name": "@watchmen/icatchr",
+  "version": "0.0.0",
+  "description": "",
+  "type": "module",
+  "exports": "./src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/the-watchmen/node-icatchr.git"
+  },
+  "scripts": {
+    "pretest": "xo",
+    "test": "npm run ava",
+    "ava": "DEBUG=dbg:* DEBUG_COLORS=1 NODE_ENV=test npx ava --serial"
+  },
+  "author": "tony kerz",
+  "license": "ISC",
+  "dependencies": {
+    "@watchmen/debug": "^2.0.8",
+    "@watchmen/helpr": "^3.2.0",
+    "chalk": "^5.6.2"
+  },
+  "devDependencies": {
+    "ava": "^6.4.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
+    "xo": "^1.2.2"
+  },
+  "ava": {},
+  "publishConfig": {
+    "access": "public"
+  }
+}
