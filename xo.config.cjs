@@ -7,5 +7,7 @@ module.exports = {
     'node/file-extension-in-import': 0,
     'import/extensions': 0,
     'capitalized-comments': 0,
+    'max-nested-callbacks': 0,
+    'no-promise-executor-return': 0,
   },
 }

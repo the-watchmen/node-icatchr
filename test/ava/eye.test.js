@@ -1,9 +1,5 @@
 import test from 'ava'
 import debug from '@watchmen/debug'
-import debug2 from 'debug'
-
-import chalk from 'chalk'
-
 import Eye from '../../src/index.js'
 
 const dbg = debug(import.meta.url)
@@ -56,7 +52,8 @@ test('banner', (t) => {
 })
 
 test('hr', (t) => {
-  console.log(Eye.hr())
+  const eye = new Eye(dbg)
+  console.log(eye.hr)
   t.pass()
 })
 

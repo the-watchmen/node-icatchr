@@ -1,8 +1,7 @@
-import _ from 'lodash'
 import chalk from 'chalk'
-// import debug from '@watchmen/debug'
+import debug from '@watchmen/debug'
 
-// const dbg = debug(import.meta.url)
+const dbg = debug(import.meta.url)
 
 export default class Eye {
   static space = '  '
@@ -23,7 +22,7 @@ export default class Eye {
 
   constructor(_dbg) {
     // this.#dbg = _dbg
-    // dbg('ctor: ns=%s', _dbg.namespace)
+    dbg('ctor: ns=%s', _dbg.namespace)
   }
 
   static color() {
@@ -43,8 +42,8 @@ export default class Eye {
     return Eye.space.repeat(this.#indent)
   }
 
-  #line(msg) {
-    return `${this.#leader()}${msg}`
+  #line(message) {
+    return `${this.#leader()}${message}`
   }
 
   banner({msg, hr = this.hr, color = Eye.color()}) {
@@ -64,9 +63,9 @@ export default class Eye {
     return args.must === true
   }
 
-  log(msg) {
+  log(message) {
     if (this.enabled) {
-      console.log(this.#line(msg))
+      console.log(this.#line(message))
     }
   }
 
@@ -77,9 +76,9 @@ export default class Eye {
 
   async section(args = {}, closure) {
     let result
-    const msg = args.msg || '?'
+    const message = args.msg || '?'
     const must = this.must(args)
-    const enabled = this.enabled
+    const {enabled} = this
 
     if (!must && !enabled) {
       return
@@ -89,9 +88,9 @@ export default class Eye {
       const trace = new Date().toLocaleTimeString()
 
       const color = Eye.color()
-      const hr = this.hr
+      const {hr} = this
 
-      this.banner({msg: `begin: ${msg} (${trace})`, color, hr})
+      this.banner({msg: `begin: ${message} (${trace})`, color, hr})
       await this.#dent(1)
       const start = Date.now()
       result = await closure(args)
@@ -101,7 +100,7 @@ export default class Eye {
       // dbg('section: indent=%s, duration=%s', this.#indent, duration)
 
       this.banner({
-        msg: `end: ${msg} (elapsed=${duration})`,
+        msg: `end: ${message} (elapsed=${duration})`,
         color,
         hr,
       })
