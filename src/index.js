@@ -54,19 +54,8 @@ export default class Eye {
     console.log(this.#line(_hr))
   }
 
-  get enabled() {
-    // to-do: enable/disable/level?
-    return true
-  }
-
-  must(args) {
-    return args.must === true
-  }
-
   log(message) {
-    if (this.enabled) {
-      console.log(this.#line(message))
-    }
+    console.log(this.#line(message))
   }
 
   async #dent(value) {
@@ -74,39 +63,38 @@ export default class Eye {
     this.#indent += value
   }
 
-  async section(args = {}, closure) {
-    let result
-    const message = args.msg || '?'
-    const must = this.must(args)
-    const {enabled} = this
+  async section(head, closure) {
+    const trace = new Date().toLocaleTimeString()
 
-    if (!must && !enabled) {
-      return
-    }
+    const color = Eye.color()
+    const {hr} = this
 
-    if (enabled) {
-      const trace = new Date().toLocaleTimeString()
+    this.banner({msg: `begin: ${head} (${trace})`, color, hr})
+    await this.#dent(1)
+    const start = Date.now()
+    const result = await closure()
+    const end = Date.now()
+    await this.#dent(-1)
+    const duration = end - start
+    // dbg('section: indent=%s, duration=%s', this.#indent, duration)
 
-      const color = Eye.color()
-      const {hr} = this
+    this.banner({
+      msg: `end: ${head} (elapsed=${duration})`,
+      color,
+      hr,
+    })
 
-      this.banner({msg: `begin: ${message} (${trace})`, color, hr})
-      await this.#dent(1)
-      const start = Date.now()
-      result = await closure(args)
-      const end = Date.now()
-      await this.#dent(-1)
-      const duration = end - start
-      // dbg('section: indent=%s, duration=%s', this.#indent, duration)
+    return result
+  }
 
-      this.banner({
-        msg: `end: ${message} (elapsed=${duration})`,
-        color,
-        hr,
-      })
-    } else {
-      result = await closure(args)
-    }
+  async sub(head, closure) {
+    const color = Eye.color()
+    const {hr} = this
+
+    this.banner({msg: head, color, hr})
+    await this.#dent(1)
+    const result = await closure()
+    await this.#dent(-1)
 
     return result
   }
