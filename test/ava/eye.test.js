@@ -6,7 +6,7 @@ const dbg = debug(import.meta.url)
 
 test('section', async (t) => {
   const eye = new Eye(dbg)
-  await eye.section('whut?', async () => {
+  await eye.section({head: 'whut?'}, async () => {
     // dbg('inside section')
     eye.log('inside section')
     await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -15,19 +15,47 @@ test('section', async (t) => {
   t.pass()
 })
 
-test('nested', async (t) => {
+test('input', async (t) => {
   const eye = new Eye(dbg)
-  await eye.section('nest-1', async () => {
+  await eye.section({head: 'whut?', input: ['in-1', 'in-2']}, async () => {
+    await eye.sub('inside', async () => {
+      eye.log('inside section')
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      eye.log('inside section again')
+    })
+  })
+  t.pass()
+})
+
+test('output', async (t) => {
+  const eye = new Eye(dbg)
+  await eye.section({head: 'whut?'}, async () => {
+    return ['out-1', 'out-2']
+  })
+  t.pass()
+})
+
+test('io', async (t) => {
+  const eye = new Eye(dbg)
+  await eye.section({head: 'whut?', input: ['in-1', 'out-1']}, async () => {
+    return ['out-1', 'out-2']
+  })
+  t.pass()
+})
+
+test('nest', async (t) => {
+  const eye = new Eye(dbg)
+  await eye.section({head: 'nest-1'}, async () => {
     eye.log('inside 1')
-    await eye.section('nest-2', async () => {
+    await eye.section({head: 'nest-2'}, async () => {
       eye.log('inside 2')
-      await eye.section('nest-3', async () => {
+      await eye.section({head: 'nest-3'}, async () => {
         eye.log('inside 3')
-        await eye.section('nest-4', async () => {
+        await eye.section({head: 'nest-4'}, async () => {
           eye.log('inside 4')
-          await eye.section('nest-5', async () => {
+          await eye.section({head: 'nest-5'}, async () => {
             eye.log('inside 5')
-            await eye.section('nest-6', async () => {
+            await eye.section({head: 'nest-6'}, async () => {
               eye.log('inside 6')
               await new Promise((resolve) => setTimeout(resolve, 100))
             })
@@ -46,7 +74,7 @@ test('nested', async (t) => {
 
 test('banner', (t) => {
   const eye = new Eye(dbg)
-  eye.banner({msg: 'whut?'})
+  eye.banner({head: 'whut?'})
   t.pass()
 })
 
@@ -61,9 +89,9 @@ test('colored', (t) => {
   t.pass()
 })
 
-test('sub', async (t) => {
+test('sub-nest', async (t) => {
   const eye = new Eye(dbg)
-  await eye.section('section', async () => {
+  await eye.section({head: 'section'}, async () => {
     await eye.sub('sub-1', async () => {
       eye.log('log-1')
       await eye.sub('sub-2', () => {
@@ -74,6 +102,14 @@ test('sub', async (t) => {
       eye.log('log-3')
     })
     await new Promise((resolve) => setTimeout(resolve, 100))
+  })
+  t.pass()
+})
+
+test('sub', async (t) => {
+  const eye = new Eye(dbg)
+  await eye.sub('sub-1', () => {
+    eye.log('log-1')
   })
   t.pass()
 })

@@ -1,5 +1,8 @@
+import assert from 'node:assert'
 import chalk from 'chalk'
 import debug from '@watchmen/debug'
+import {parseBoolean} from '@watchmen/helpr'
+import _ from 'lodash'
 
 const dbg = debug(import.meta.url)
 
@@ -46,16 +49,24 @@ export default class Eye {
     return `${this.#leader()}${message}`
   }
 
-  banner({msg, hr = this.hr, color = Eye.color()}) {
+  banner({head, hr = this.hr, color = Eye.color()}) {
     const _hr = Eye.colored({msg: hr, color})
     const _leader = Eye.colored({msg: Eye.bannerLeader, color})
     console.log(this.#line(_hr))
-    console.log(this.#line(`${_leader}${Eye.space}${msg}`))
+    console.log(this.#line(`${_leader}${Eye.space}${head}`))
     console.log(this.#line(_hr))
   }
 
   log(message) {
-    console.log(this.#line(message))
+    const array = Array.isArray(message) ? message : [message]
+    for (const elt of array) {
+      console.log(this.#line(elt))
+    }
+  }
+
+  get enabled() {
+    // eslint-disable-next-line n/prefer-global/process
+    return !parseBoolean(process.env.ICATCHR_DISABLED)
   }
 
   async #dent(value) {
@@ -63,38 +74,61 @@ export default class Eye {
     this.#indent += value
   }
 
-  async section(head, closure) {
-    const trace = new Date().toLocaleTimeString()
-
-    const color = Eye.color()
-    const {hr} = this
-
-    this.banner({msg: `begin: ${head} (${trace})`, color, hr})
-    await this.#dent(1)
-    const start = Date.now()
-    const result = await closure()
-    const end = Date.now()
-    await this.#dent(-1)
-    const duration = end - start
-    // dbg('section: indent=%s, duration=%s', this.#indent, duration)
-
-    this.banner({
-      msg: `end: ${head} (elapsed=${duration})`,
-      color,
-      hr,
-    })
-
-    return result
+  async sub(head, closure) {
+    return this.section({head, isTrace: false}, closure)
   }
 
-  async sub(head, closure) {
-    const color = Eye.color()
-    const {hr} = this
+  async section({head, must, input, isLog = true, isTrace = true}, closure) {
+    assert.ok(head)
 
-    this.banner({msg: head, color, hr})
-    await this.#dent(1)
-    const result = await closure()
-    await this.#dent(-1)
+    const {enabled} = this
+
+    if (!must && !enabled) {
+      return
+    }
+
+    let result
+
+    if (enabled) {
+      const trace = new Date().toLocaleTimeString()
+
+      const color = Eye.color()
+      const {hr} = this
+
+      const _head = isTrace ? `begin: ${head} (${trace})` : head
+      this.banner({head: _head, color, hr})
+      await this.#dent(1)
+      const start = isTrace && Date.now()
+
+      if (!_.isEmpty(input)) {
+        await this.sub('input', () => {
+          this.log(input)
+        })
+      }
+
+      result = await closure()
+
+      if (isLog && !_.isEmpty(result)) {
+        await this.sub('output', () => {
+          this.log(result)
+        })
+      }
+
+      const end = isTrace && Date.now()
+      await this.#dent(-1)
+      const duration = isTrace && end - start
+      // dbg('section: indent=%s, duration=%s', this.#indent, duration)
+
+      if (isTrace) {
+        this.banner({
+          head: `end: ${head} (elapsed=${duration})`,
+          color,
+          hr,
+        })
+      }
+    } else {
+      result = await closure()
+    }
 
     return result
   }
