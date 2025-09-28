@@ -30,12 +30,12 @@ export default class Eye {
     return Eye.colors[rand]
   }
 
-  static colored({msg, color = Eye.color()}) {
-    return chalk.ansi256(color)(msg)
-  }
-
   constructor(namespace) {
     this.#namespace = namespace ?? import.meta.url
+  }
+
+  get namespace() {
+    return this.#namespace
   }
 
   get hr() {
@@ -52,28 +52,37 @@ export default class Eye {
   }
 
   get color() {
-    const color = this.#colors[this.#indent]
+    let color = this.#colors[this.#indent]
     if (!color) {
-      this.#colors[this.#indent] = Eye.color()
+      color = Eye.color()
+      this.#colors[this.#indent] = color
     }
 
     return color
   }
 
-  line(message) {
-    return `${this.leader}${message}`
+  colored(args) {
+    const {string = args, color = this.color} = args
+    return chalk.ansi256(color)(string)
   }
 
-  banner({head, hr = this.hr, color = this.color}) {
-    const _hr = Eye.colored({msg: hr, color})
-    const _leader = Eye.colored({msg: Eye.bannerLeader, color})
+  line(string) {
+    return `${this.leader}${string}`
+  }
+
+  banner(args) {
+    const {string = args, hr = this.hr, color = this.color} = args
+    assert.ok(_.isString(string))
+
+    const _hr = this.colored({string: hr, color})
+    const _leader = this.colored({string: Eye.bannerLeader, color})
     console.log(this.line(_hr))
-    console.log(this.line(`${_leader}${Eye.space}${head}`))
+    console.log(this.line(`${_leader}${Eye.space}${string}`))
     console.log(this.line(_hr))
   }
 
-  log(message) {
-    const array = Array.isArray(message) ? message : [message]
+  log(string) {
+    const array = Array.isArray(string) ? string : [string]
     for (const elt of array) {
       console.log(this.line(elt))
     }
@@ -84,15 +93,19 @@ export default class Eye {
     this.#indent += value
   }
 
-  sub(head, closure) {
-    return this.section({head, isTrace: false}, closure)
+  sub(string, closure) {
+    return this.section({string, isTrace: false}, closure)
   }
 
-  async section(
-    {head, must, input, isLog = true, isTrace = true, color = this.color},
-    closure,
-  ) {
-    assert.ok(head)
+  async section(args, closure) {
+    const {
+      string = args,
+      must,
+      input,
+      isLog = true,
+      isTrace = true,
+      color = this.color,
+    } = args
 
     const {enabled} = this
 
@@ -107,8 +120,8 @@ export default class Eye {
 
       const {hr} = this
 
-      const _head = isTrace ? `begin: ${head} (${trace})` : head
-      this.banner({head: _head, color, hr})
+      const _head = isTrace ? `begin: ${string} (${trace})` : string
+      this.banner({string, color, hr})
       await this.#dent(1)
       const start = isTrace && Date.now()
 
@@ -133,7 +146,7 @@ export default class Eye {
 
       if (isTrace) {
         this.banner({
-          head: `end: ${head} (elapsed=${duration})`,
+          string: `end: ${string} (elapsed=${duration})`,
           color,
           hr,
         })
