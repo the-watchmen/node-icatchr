@@ -1,6 +1,6 @@
 {
   "name": "@watchmen/icatchr",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "",
   "type": "module",
   "exports": "./src/index.js",
