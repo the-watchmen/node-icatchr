@@ -1,10 +1,10 @@
 import assert from 'node:assert'
 import chalk from 'chalk'
-import debug from '@watchmen/debug'
+// import debug from '@watchmen/debug'
 import {parseBoolean} from '@watchmen/helpr'
 import _ from 'lodash'
 
-const dbg = debug(import.meta.url)
+// const dbg = debug(import.meta.url)
 
 export default class Eye {
   static space = '  '
@@ -19,49 +19,31 @@ export default class Eye {
     205, 206, 207, 208, 209, 214, 215, 220, 221,
   ]
   static chars = ['=', '-', '~', '*', '+']
+  //
   #indent = 0
-
-  // #dbg
-
-  constructor(_dbg) {
-    // this.#dbg = _dbg
-    dbg('ctor: ns=%s', _dbg.namespace)
-  }
+  #color = Eye.color()
+  #namespace
+  #colors = {}
 
   static color() {
     const rand = Math.floor(Math.random() * (Eye.colors.length - 1))
     return Eye.colors[rand]
   }
 
-  get hr() {
-    return Eye.chars[this.#indent % Eye.chars.length].repeat(80)
-  }
-
   static colored({msg, color = Eye.color()}) {
     return chalk.ansi256(color)(msg)
   }
 
-  #leader() {
+  constructor(namespace) {
+    this.#namespace = namespace ?? import.meta.url
+  }
+
+  get hr() {
+    return Eye.chars[this.#indent % Eye.chars.length].repeat(80)
+  }
+
+  get leader() {
     return Eye.space.repeat(this.#indent)
-  }
-
-  #line(message) {
-    return `${this.#leader()}${message}`
-  }
-
-  banner({head, hr = this.hr, color = Eye.color()}) {
-    const _hr = Eye.colored({msg: hr, color})
-    const _leader = Eye.colored({msg: Eye.bannerLeader, color})
-    console.log(this.#line(_hr))
-    console.log(this.#line(`${_leader}${Eye.space}${head}`))
-    console.log(this.#line(_hr))
-  }
-
-  log(message) {
-    const array = Array.isArray(message) ? message : [message]
-    for (const elt of array) {
-      console.log(this.#line(elt))
-    }
   }
 
   get enabled() {
@@ -69,16 +51,47 @@ export default class Eye {
     return !parseBoolean(process.env.ICATCHR_DISABLED)
   }
 
-  async #dent(value) {
+  get color() {
+    const color = this.#colors[this.#indent]
+    if (!color) {
+      this.#colors[this.#indent] = Eye.color()
+    }
+
+    return color
+  }
+
+  line(message) {
+    return `${this.leader}${message}`
+  }
+
+  banner({head, hr = this.hr, color = this.color}) {
+    const _hr = Eye.colored({msg: hr, color})
+    const _leader = Eye.colored({msg: Eye.bannerLeader, color})
+    console.log(this.line(_hr))
+    console.log(this.line(`${_leader}${Eye.space}${head}`))
+    console.log(this.line(_hr))
+  }
+
+  log(message) {
+    const array = Array.isArray(message) ? message : [message]
+    for (const elt of array) {
+      console.log(this.line(elt))
+    }
+  }
+
+  #dent(value) {
     // dbg('dent: indent=%s, value=%s', this.#indent, value)
     this.#indent += value
   }
 
-  async sub(head, closure) {
+  sub(head, closure) {
     return this.section({head, isTrace: false}, closure)
   }
 
-  async section({head, must, input, isLog = true, isTrace = true}, closure) {
+  async section(
+    {head, must, input, isLog = true, isTrace = true, color = this.color},
+    closure,
+  ) {
     assert.ok(head)
 
     const {enabled} = this
@@ -92,7 +105,6 @@ export default class Eye {
     if (enabled) {
       const trace = new Date().toLocaleTimeString()
 
-      const color = Eye.color()
       const {hr} = this
 
       const _head = isTrace ? `begin: ${head} (${trace})` : head
