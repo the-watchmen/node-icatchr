@@ -1,8 +1,8 @@
 import test from 'ava'
-// import debug from '@watchmen/debug'
-import Eye from '../../src/index.js'
+import debug from '@watchmen/debug'
+import Eye, {sectionIf} from '../../src/index.js'
 
-// const dbg = debug(import.meta.url)
+const dbg = debug(import.meta.url)
 
 test('section', async (t) => {
   const eye = new Eye()
@@ -115,5 +115,22 @@ test('sub', async (t) => {
   await eye.sub('sub-1', () => {
     eye.log('log-1')
   })
+  t.pass()
+})
+
+test('section-if', (t) => {
+  const eye = new Eye()
+  let input = 'some-input'
+
+  sectionIf({eye, string: 'some-string', input}, () => {
+    dbg('section-if: input=%o', input)
+  })
+
+  input = 'other-input'
+
+  sectionIf({string: 'some-string', input}, () => {
+    dbg('section-if-nope: input=%o', input)
+  })
+
   t.pass()
 })
