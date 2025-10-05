@@ -158,3 +158,7 @@ export default class Eye {
     return result
   }
 }
+
+export function sectionIf({eye, string, input}, closure) {
+  return eye ? eye.section({string, input}, closure) : closure()
+}
