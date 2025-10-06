@@ -1,7 +1,7 @@
 import assert from 'node:assert'
 import chalk from 'chalk'
 // import debug from '@watchmen/debug'
-import {parseBoolean} from '@watchmen/helpr'
+import {parseBoolean, pretty} from '@watchmen/helpr'
 import _ from 'lodash'
 
 // const dbg = debug(import.meta.url)
@@ -21,7 +21,6 @@ export default class Eye {
   static chars = ['=', '-', '~', '*', '+']
   //
   #indent = 0
-  #color = Eye.color()
   #namespace
   #colors = {}
 
@@ -81,8 +80,16 @@ export default class Eye {
     console.log(this.line(_hr))
   }
 
-  log(string) {
-    const array = Array.isArray(string) ? string : [string]
+  log(value) {
+    let array
+    if (Array.isArray(value)) {
+      array = value
+    } else if (_.isObject(value)) {
+      array = pretty(value).split('\n')
+    } else {
+      array = [value]
+    }
+
     for (const elt of array) {
       console.log(this.line(elt))
     }
@@ -159,6 +166,6 @@ export default class Eye {
   }
 }
 
-export function sectionIf({eye, string, input}, closure) {
-  return eye ? eye.section({string, input}, closure) : closure()
+export function sectionIf({eye, string, input, isLog}, closure) {
+  return eye ? eye.section({string, input, isLog}, closure) : closure()
 }
