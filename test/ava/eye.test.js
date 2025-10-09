@@ -1,8 +1,8 @@
 import test from 'ava'
-import debug from '@watchmen/debug'
-import Eye, {sectionIf} from '../../src/index.js'
+// import debug from '@watchmen/debug'
+import Eye from '../../src/index.js'
 
-const dbg = debug(import.meta.url)
+// const dbg = debug(import.meta.url)
 
 test('section', async (t) => {
   const eye = new Eye()
@@ -118,19 +118,53 @@ test('sub', async (t) => {
   t.pass()
 })
 
-test('section-if', (t) => {
+test('error', async (t) => {
   const eye = new Eye()
-  let input = 'some-input'
+  try {
+    await eye.section(t.title, () => {
+      throw new Error('sunthin')
+    })
+  } catch (error) {
+    t.truthy(error)
+  }
+})
 
-  sectionIf({eye, string: 'some-string', input}, () => {
-    dbg('section-if: input=%o', input)
-  })
+test('error-out', async (t) => {
+  const eye = new Eye()
+  try {
+    await eye.section(t.title, () => {
+      const error = new Error('sunthin')
+      error.stdout = ['some', 'thing', 'bad']
+      throw error
+    })
+  } catch (error) {
+    t.truthy(error)
+  }
+})
 
-  input = 'other-input'
+test('error-err', async (t) => {
+  const eye = new Eye()
+  try {
+    await eye.section(t.title, () => {
+      const error = new Error('sunthin')
+      error.stderr = ['some', 'thing', 'very', 'bad']
+      throw error
+    })
+  } catch (error) {
+    t.truthy(error)
+  }
+})
 
-  sectionIf({string: 'some-string', input}, () => {
-    dbg('section-if-nope: input=%o', input)
-  })
-
-  t.pass()
+test('error-io', async (t) => {
+  const eye = new Eye()
+  try {
+    await eye.section('nope', () => {
+      const error = new Error('sunthin')
+      error.stdout = ['extra', 'stuff']
+      error.stderr = ['some', 'thing', 'very', 'bad']
+      throw error
+    })
+  } catch (error) {
+    t.truthy(error)
+  }
 })
