@@ -2,6 +2,7 @@ import assert from 'node:assert'
 import chalk from 'chalk'
 // import debug from '@watchmen/debug'
 import {parseBoolean, pretty} from '@watchmen/helpr'
+import {getEnvAsArray} from '@watchmen/configr/env'
 import _ from 'lodash'
 
 // const dbg = debug(import.meta.url)
@@ -138,7 +139,17 @@ export default class Eye {
         })
       }
 
-      result = await closure()
+      try {
+        result = await closure({input})
+      } catch (error) {
+        await this.sub('exception', () => {
+          for (const line of this.getErrorLines(error)) {
+            this.log(line)
+          }
+        })
+        this.log(this.colored(this.hr))
+        throw error
+      }
 
       if (isLog && !_.isEmpty(result)) {
         await this.sub('output', () => {
@@ -164,8 +175,38 @@ export default class Eye {
 
     return result
   }
-}
 
-export function sectionIf({eye, string, input, isLog}, closure) {
-  return eye ? eye.section({string, input, isLog}, closure) : closure()
+  getErrorLines(error) {
+    const props = getEnvAsArray({
+      name: 'ICATCHR_ERROR_PROPERTIES',
+      dflt: ['stderr', 'stdout'],
+    })
+
+    let lines = _.reduce(
+      props,
+      (memo, v) => {
+        let _v = error[v] ?? []
+
+        if (!_.isEmpty(memo) && !_.isEmpty(_v)) {
+          memo.push(this.colored(this.hr))
+        }
+
+        if (!_.isArray(_v)) {
+          if (_.isString(v)) {
+            _v = v.split('\n')
+          } else {
+            _v = pretty(_v).split('\n')
+          }
+        }
+
+        return [...memo, ..._v]
+      },
+      [],
+    )
+    if (_.isEmpty(lines)) {
+      lines = error.stack.split('\n')
+    }
+
+    return lines
+  }
 }

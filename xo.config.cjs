@@ -9,5 +9,7 @@ module.exports = {
     'capitalized-comments': 0,
     'max-nested-callbacks': 0,
     'no-promise-executor-return': 0,
+    'unicorn/no-array-reduce': 0,
+    'unicorn/prefer-ternary': 0,
   },
 }
