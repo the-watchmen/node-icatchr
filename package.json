@@ -1,6 +1,6 @@
 {
   "name": "@watchmen/icatchr",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "",
   "type": "module",
   "exports": "./src/index.js",
@@ -11,7 +11,7 @@
   "scripts": {
     "pretest": "xo",
     "test": "npm run ava",
-    "ava": "DEBUG=dbg:* DEBUG_COLORS=1 NODE_ENV=test npx ava --serial"
+    "ava": "DEBUG_COLORS=1 NODE_ENV=test npx ava --serial"
   },
   "author": "tony kerz",
   "license": "ISC",

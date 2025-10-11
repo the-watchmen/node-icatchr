@@ -121,7 +121,7 @@ test('sub', async (t) => {
 test('error', async (t) => {
   const eye = new Eye()
   try {
-    await eye.section(t.title, () => {
+    await eye.section({string: t.title, must: true}, () => {
       throw new Error('sunthin')
     })
   } catch (error) {
