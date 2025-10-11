@@ -114,7 +114,7 @@ export default class Eye {
   async section(args, closure) {
     const {
       string = args,
-      must,
+      must = true,
       input,
       isLog = true,
       isTrace = true,
@@ -156,6 +156,7 @@ export default class Eye {
           }
         })
         this.log(this.colored(this.hr))
+        await this.#dent(-1)
         throw error
       }
 
