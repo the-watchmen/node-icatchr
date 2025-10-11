@@ -124,14 +124,16 @@ export default class Eye {
     let result
 
     if (enabled) {
-      const trace = new Date().toLocaleTimeString()
-
       const {hr} = this
 
-      const _head = isTrace ? `begin: ${string} (${trace})` : string
-      this.banner({string, color, hr})
+      this.banner({
+        string: isTrace ? `begin: ${string}` : string,
+        color,
+        hr,
+      })
+
       await this.#dent(1)
-      const start = isTrace && Date.now()
+      const start = Date.now()
 
       if (!_.isEmpty(input)) {
         await this.sub('input', () => {
@@ -142,7 +144,7 @@ export default class Eye {
       try {
         result = await closure({input})
       } catch (error) {
-        await this.sub('exception', () => {
+        await this.sub(`exception ${this.#elapsed({start})}`, () => {
           for (const line of this.getErrorLines(error)) {
             this.log(line)
           }
@@ -157,14 +159,12 @@ export default class Eye {
         })
       }
 
-      const end = isTrace && Date.now()
       await this.#dent(-1)
-      const duration = isTrace && end - start
       // dbg('section: indent=%s, duration=%s', this.#indent, duration)
 
       if (isTrace) {
         this.banner({
-          string: `end: ${string} (elapsed=${duration})`,
+          string: `end: ${string} ${this.#elapsed({start})}`,
           color,
           hr,
         })
@@ -208,5 +208,13 @@ export default class Eye {
     }
 
     return lines
+  }
+
+  #elapsed({start}) {
+    return `(elapsed=${this.#duration({start})})`
+  }
+
+  #duration({start}) {
+    return Date.now() - start
   }
 }
