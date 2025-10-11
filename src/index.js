@@ -24,6 +24,7 @@ export default class Eye {
   #indent = 0
   #namespace
   #colors = {}
+  #enabled
 
   static color() {
     const rand = Math.floor(Math.random() * (Eye.colors.length - 1))
@@ -32,6 +33,8 @@ export default class Eye {
 
   constructor(namespace) {
     this.#namespace = namespace ?? import.meta.url
+    // eslint-disable-next-line n/prefer-global/process
+    this.#enabled = !parseBoolean(process.env.ICATCHR_DISABLED)
   }
 
   get namespace() {
@@ -47,8 +50,7 @@ export default class Eye {
   }
 
   get enabled() {
-    // eslint-disable-next-line n/prefer-global/process
-    return !parseBoolean(process.env.ICATCHR_DISABLED)
+    return this.#enabled
   }
 
   get color() {
@@ -71,6 +73,8 @@ export default class Eye {
   }
 
   banner(args) {
+    if (!this.enabled) return
+
     const {string = args, hr = this.hr, color = this.color} = args
     assert.ok(_.isString(string))
 
@@ -82,6 +86,8 @@ export default class Eye {
   }
 
   log(value) {
+    if (!this.enabled) return
+
     let array
     if (Array.isArray(value)) {
       array = value
